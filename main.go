@@ -3,13 +3,18 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"html/template"
 	"log"
 	"net"
+	_ "net/url"
 	"strings"
-_	"time"
+	_ "time"
 )
 
 func main() {
+  
+	tpl := template.Must(template.ParseFiles("tpl.gohtml"))
+
 	li, err := net.Listen("tcp",":8080")
 	if err != nil {
 		log.Panic(err)
@@ -22,22 +27,18 @@ func main() {
 			log.Println(err)
 			continue
 		}
-		go handle(conn)
+		go handle(conn, tpl)
 	}
 }
 
-func handle(conn net.Conn) {
+func handle(conn net.Conn, tpl *template.Template) {
 	defer conn.Close()
-	request(conn)
-	respond(conn)
+	var url string
+	request(conn, &url)
+	respond(conn, &url, tpl)
 }
-func request(conn net.Conn) {
-
+func request(conn net.Conn, url *string) {
 	var lnCounter int
-
-	// if err := conn.SetDeadline(time.Now().Add(10 * time.Second)); err != nil {
-	// 	log.Println("CONN TIMEOUT")
-	// }
 
 	//READ FROM TCP CONNECTION
 	scanner := bufio.NewScanner(conn)
@@ -46,11 +47,8 @@ func request(conn net.Conn) {
 	for scanner.Scan() {
 		ln := scanner.Text()
 		fmt.Println(ln)
-
 		if lnCounter == 0 {
-			m := strings.Fields(ln)
-			fmt.Println("---METHOD---URL---", m[0], m[1])
-
+			*url = strings.Fields(ln)[1]
 		}
 		if ln == "" { break }
 		lnCounter++
@@ -58,15 +56,15 @@ func request(conn net.Conn) {
 	}
 }
 
-func respond(conn net.Conn) {
-
-	body := `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title></title></head><body><strong>Hello World!</strong></body></html>`
+func respond(conn net.Conn, url *string, tpl *template.Template) { 
+	//body := `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title></title></head><body><strong>Hello World!</strong></body></html>`
 
 	fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n")
-	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(body))
+	//fmt.Fprintf(conn, "Content-Length: %d\r\n")
 	fmt.Fprint(conn, "Content-Type: text/html\r\n")
 	fmt.Fprint(conn, "\r\n")
-	fmt.Fprint(conn, body)
+	tpl.Execute(conn,*url)
+	//fmt.Printf("\n---%s---\n",*url)
 }
 // err := conn.SetDeadline(time.Now().Add(10 * time.Second))
 // if err != nil {
