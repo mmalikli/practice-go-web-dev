@@ -6,30 +6,28 @@ import (
 	"html/template"
 	"log"
 	"net"
-	_ "net/url"
 	"strings"
-	_ "time"
 )
 
-func main() {
+// func main() {
   
-	tpl := template.Must(template.ParseFiles("tpl.gohtml"))
+// 	tpl := template.Must(template.ParseFiles("tpl.gohtml"))
 
-	li, err := net.Listen("tcp",":8080")
-	if err != nil {
-		log.Panic(err)
-	}
-	defer li.Close()
+// 	li, err := net.Listen("tcp",":8080")
+// 	if err != nil {
+// 		log.Panic(err)
+// 	}
+// 	defer li.Close()
 
-	for {
-		conn, err := li.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		go handle(conn, tpl)
-	}
-}
+// 	for {
+// 		conn, err := li.Accept()
+// 		if err != nil {
+// 			log.Println(err)
+// 			continue
+// 		}
+// 		go handle(conn, tpl)
+// 	}
+// }
 
 func handle(conn net.Conn, tpl *template.Template) {
 	defer conn.Close()
