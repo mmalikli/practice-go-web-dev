@@ -8,7 +8,8 @@ import (
 type hotdog int
 
 func (m hotdog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Some Code...")
+	fmt.Println(*r)
+	fmt.Fprintln(w,"Some Code...")
 }
 
 func main() {
